@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A premium Getting Things Done (GTD) productivity app based on David Allen's methodology.">
+    <title>GTD Flow — Getting Things Done</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="ambient-bg">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">✓</div>
+                    <div class="logo-text">
+                        <span class="logo-title">GTD Flow</span>
+                        <span class="logo-subtitle">Getting Things Done</span>
+                    </div>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <span class="nav-section-title">Capture</span>
+                    <button class="nav-item active" data-view="inbox" id="nav-inbox">
+                        <span class="nav-icon">📥</span><span class="nav-label">Inbox</span>
+                        <span class="nav-badge" id="inbox-count">0</span>
+                    </button>
+                </div>
+                <div class="nav-section">
+                    <span class="nav-section-title">Organize</span>
+                    <button class="nav-item" data-view="next-actions" id="nav-next-actions">
+                        <span class="nav-icon">⚡</span><span class="nav-label">Next Actions</span>
+                        <span class="nav-badge" id="next-count">0</span>
+                    </button>
+                    <button class="nav-item" data-view="projects" id="nav-projects">
+                        <span class="nav-icon">📂</span><span class="nav-label">Projects</span>
+                        <span class="nav-badge" id="projects-count">0</span>
+                    </button>
+                    <button class="nav-item" data-view="waiting-for" id="nav-waiting-for">
+                        <span class="nav-icon">⏳</span><span class="nav-label">Waiting For</span>
+                        <span class="nav-badge" id="waiting-count">0</span>
+                    </button>
+                    <button class="nav-item" data-view="calendar" id="nav-calendar">
+                        <span class="nav-icon">📅</span><span class="nav-label">Calendar</span>
+                        <span class="nav-badge" id="calendar-count">0</span>
+                    </button>
+                    <button class="nav-item" data-view="someday" id="nav-someday">
+                        <span class="nav-icon">💭</span><span class="nav-label">Someday / Maybe</span>
+                        <span class="nav-badge" id="someday-count">0</span>
+                    </button>
+                    <button class="nav-item" data-view="reference" id="nav-reference">
+                        <span class="nav-icon">📚</span><span class="nav-label">Reference</span>
+                        <span class="nav-badge" id="reference-count">0</span>
+                    </button>
+                </div>
+                <div class="nav-section">
+                    <span class="nav-section-title">Reflect</span>
+                    <button class="nav-item" data-view="weekly-review" id="nav-weekly-review">
+                        <span class="nav-icon">🔄</span><span class="nav-label">Weekly Review</span>
+                    </button>
+                </div>
+                <div class="nav-section">
+                    <span class="nav-section-title">Archive</span>
+                    <button class="nav-item" data-view="completed" id="nav-completed">
+                        <span class="nav-icon">✅</span><span class="nav-label">Completed</span>
+                        <span class="nav-badge" id="completed-count">0</span>
+                    </button>
+                </div>
+                <div class="nav-section">
+                    <span class="nav-section-title">Settings</span>
+                    <button class="nav-item" id="nav-sms-settings" onclick="window.GTD.showSmsSettings()">
+                        <span class="nav-icon">📱</span><span class="nav-label">SMS Settings</span>
+                    </button>
+                </div>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="gtd-quote">
+                    <p>"Your mind is for having ideas, not holding them."</p>
+                    <span>— David Allen</span>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <button class="menu-toggle" id="menu-toggle" aria-label="Toggle menu">
+                    <span></span><span></span><span></span>
+                </button>
+                <div class="topbar-title">
+                    <h1 id="view-title">Inbox</h1>
+                    <p id="view-subtitle">Capture everything on your mind</p>
+                </div>
+                <div class="topbar-actions">
+                    <div class="search-box">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" id="search-input" placeholder="Search tasks..." autocomplete="off">
+                    </div>
+                </div>
+            </header>
+
+            <div class="capture-bar" id="capture-bar">
+                <div class="capture-input-wrapper">
+                    <span class="capture-icon">+</span>
+                    <input type="text" id="capture-input" placeholder="What's on your mind? Capture it here..." autocomplete="off">
+                    <button class="capture-btn" id="capture-btn" aria-label="Capture task">→</button>
+                </div>
+            </div>
+
+            <div class="content-area" id="content-area"></div>
+        </main>
+    </div>
+
+    <!-- Process Modal -->
+    <div class="modal-overlay" id="process-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>🔍 Process Item</h2>
+                <button class="modal-close" id="process-modal-close">&times;</button>
+            </div>
+            <div class="modal-body" id="process-main-view">
+                <div class="process-item-title" id="process-item-title"></div>
+                <div class="process-question"><p>Is it actionable?</p></div>
+                <div class="process-actions">
+                    <div class="process-actionable">
+                        <h3>✅ Yes, it's actionable</h3>
+                        <div class="process-options">
+                            <button class="process-btn" data-action="do-it"><span class="process-btn-icon">⚡</span><span class="process-btn-label">Do It Now</span><span class="process-btn-desc">Less than 2 minutes</span></button>
+                            <button class="process-btn" data-action="delegate"><span class="process-btn-icon">👤</span><span class="process-btn-label">Delegate It</span><span class="process-btn-desc">Someone else should do this</span></button>
+                            <button class="process-btn" data-action="defer"><span class="process-btn-icon">📋</span><span class="process-btn-label">Defer It</span><span class="process-btn-desc">Add to Next Actions</span></button>
+                            <button class="process-btn" data-action="schedule"><span class="process-btn-icon">📅</span><span class="process-btn-label">Schedule It</span><span class="process-btn-desc">Add to Calendar</span></button>
+                        </div>
+                    </div>
+                    <div class="process-not-actionable">
+                        <h3>❌ Not actionable</h3>
+                        <div class="process-options">
+                            <button class="process-btn" data-action="trash"><span class="process-btn-icon">🗑️</span><span class="process-btn-label">Trash It</span><span class="process-btn-desc">Delete permanently</span></button>
+                            <button class="process-btn" data-action="someday"><span class="process-btn-icon">💭</span><span class="process-btn-label">Someday / Maybe</span><span class="process-btn-desc">Revisit later</span></button>
+                            <button class="process-btn" data-action="reference"><span class="process-btn-icon">📚</span><span class="process-btn-label">Reference</span><span class="process-btn-desc">File for future use</span></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Sub-views for defer/delegate/schedule -->
+            <div class="modal-subview" id="defer-subview" style="display:none;">
+                <div class="modal-header"><button class="modal-back" id="defer-back">← Back</button><h2>📋 Next Actions</h2><button class="modal-close defer-close">&times;</button></div>
+                <div class="modal-body">
+                    <div class="form-group"><label>Context</label><select id="defer-context" class="form-select"><option value="@anywhere">@anywhere</option><option value="@home">@home</option><option value="@work">@work</option><option value="@computer">@computer</option><option value="@phone">@phone</option><option value="@errands">@errands</option></select></div>
+                    <div class="form-group"><label>Project</label><select id="defer-project" class="form-select"><option value="">No project</option></select></div>
+                    <div class="form-group"><label>Energy</label><select id="defer-energy" class="form-select"><option value="low">🔋 Low</option><option value="medium">🔋🔋 Medium</option><option value="high">🔋🔋🔋 High</option></select></div>
+                    <div class="form-group"><label>Time Estimate</label><select id="defer-time" class="form-select"><option value="5">5 min</option><option value="15">15 min</option><option value="30" selected>30 min</option><option value="60">1 hr</option><option value="120">2+ hrs</option></select></div>
+                    <div class="form-group"><label>Notes</label><textarea id="defer-notes" class="form-textarea" rows="3" placeholder="Add notes..."></textarea></div>
+                    <button class="btn-primary" id="defer-save">Add to Next Actions</button>
+                </div>
+            </div>
+            <div class="modal-subview" id="delegate-subview" style="display:none;">
+                <div class="modal-header"><button class="modal-back" id="delegate-back">← Back</button><h2>👤 Delegate</h2><button class="modal-close delegate-close">&times;</button></div>
+                <div class="modal-body">
+                    <div class="form-group"><label>Delegated To</label><input type="text" id="delegate-to" class="form-input" placeholder="Who?"></div>
+                    <div class="form-group"><label>Follow-up Date</label><input type="date" id="delegate-due" class="form-input"></div>
+                    <div class="form-group"><label>Notes</label><textarea id="delegate-notes" class="form-textarea" rows="3" placeholder="Add notes..."></textarea></div>
+                    <button class="btn-primary" id="delegate-save">Add to Waiting For</button>
+                </div>
+            </div>
+            <div class="modal-subview" id="schedule-subview" style="display:none;">
+                <div class="modal-header"><button class="modal-back" id="schedule-back">← Back</button><h2>📅 Schedule</h2><button class="modal-close schedule-close">&times;</button></div>
+                <div class="modal-body">
+                    <div class="form-group"><label>Date</label><input type="date" id="schedule-date" class="form-input"></div>
+                    <div class="form-group"><label>Time</label><input type="time" id="schedule-time" class="form-input"></div>
+                    <div class="form-group"><label>Notes</label><textarea id="schedule-notes" class="form-textarea" rows="3" placeholder="Add notes..."></textarea></div>
+                    <button class="btn-primary" id="schedule-save">Add to Calendar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal-overlay" id="edit-modal">
+        <div class="modal">
+            <div class="modal-header"><h2>✏️ Edit Item</h2><button class="modal-close" id="edit-modal-close">&times;</button></div>
+            <div class="modal-body">
+                <div class="form-group"><label>Title</label><input type="text" id="edit-title" class="form-input"></div>
+                <div class="form-group"><label>Category</label><select id="edit-category" class="form-select"><option value="inbox">📥 Inbox</option><option value="next">⚡ Next Actions</option><option value="waiting">⏳ Waiting For</option><option value="calendar">📅 Calendar</option><option value="someday">💭 Someday/Maybe</option><option value="reference">📚 Reference</option></select></div>
+                <div class="form-group"><label>Context</label><select id="edit-context" class="form-select"><option value="@anywhere">@anywhere</option><option value="@home">@home</option><option value="@work">@work</option><option value="@computer">@computer</option><option value="@phone">@phone</option><option value="@errands">@errands</option></select></div>
+                <div class="form-group"><label>Project</label><select id="edit-project" class="form-select"><option value="">No project</option></select></div>
+                <div class="form-group"><label>Energy</label><select id="edit-energy" class="form-select"><option value="low">🔋 Low</option><option value="medium">🔋🔋 Medium</option><option value="high">🔋🔋🔋 High</option></select></div>
+                <div class="form-group"><label>Time</label><select id="edit-time" class="form-select"><option value="5">5 min</option><option value="15">15 min</option><option value="30">30 min</option><option value="60">1 hr</option><option value="120">2+ hrs</option></select></div>
+                <div class="form-group"><label>Delegated To</label><input type="text" id="edit-delegated" class="form-input" placeholder="Who?"></div>
+                <div class="form-group"><label>Due Date</label><input type="date" id="edit-due" class="form-input"></div>
+                <div class="form-group"><label>Notes</label><textarea id="edit-notes" class="form-textarea" rows="3" placeholder="Notes..."></textarea></div>
+                <div class="edit-actions"><button class="btn-primary" id="edit-save">Save Changes</button><button class="btn-danger" id="edit-delete">Delete</button></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Project Modal -->
+    <div class="modal-overlay" id="project-modal">
+        <div class="modal">
+            <div class="modal-header"><h2>📂 New Project</h2><button class="modal-close" id="project-modal-close">&times;</button></div>
+            <div class="modal-body">
+                <div class="form-group"><label>Project Name</label><input type="text" id="project-title" class="form-input" placeholder="What's the desired outcome?"></div>
+                <div class="form-group"><label>Desired Outcome</label><textarea id="project-outcome" class="form-textarea" rows="3" placeholder="What does done look like?"></textarea></div>
+                <button class="btn-primary" id="project-save">Create Project</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SMS Settings Modal -->
+    <div class="modal-overlay" id="sms-settings-modal">
+        <div class="modal">
+            <div class="modal-header"><h2>📱 SMS Settings (httpSMS)</h2><button class="modal-close" id="sms-settings-close">&times;</button></div>
+            <div class="modal-body">
+                <div style="padding:12px 16px;background:rgba(129,140,248,0.1);border:1px solid rgba(129,140,248,0.3);border-radius:8px;margin-bottom:16px;font-size:13px;line-height:1.6;color:var(--text-secondary)">
+                    <strong style="color:var(--text-primary)">How to set up httpSMS:</strong><br>
+                    1. Sign up at <a href="https://httpsms.com" target="_blank" style="color:var(--accent)">httpsms.com</a><br>
+                    2. Install the httpSMS Android app on your phone<br>
+                    3. Sign in with your API key in the app<br>
+                    4. Enter your API key and phone number below
+                </div>
+                <div class="form-group"><label>API Key</label><input type="password" id="sms-api-key" class="form-input" placeholder="Your httpSMS API key"></div>
+                <div class="form-group"><label>Your Phone (sender — Android device)</label><input type="tel" id="sms-from-phone" class="form-input" placeholder="+1234567890"></div>
+                <div class="form-group"><label>Notification Phone (receiver)</label><input type="tel" id="sms-to-phone" class="form-input" placeholder="+1234567890"></div>
+                <div class="form-group">
+                    <label>Send SMS When</label>
+                    <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
+                        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-secondary);cursor:pointer;text-transform:none;letter-spacing:0">
+                            <input type="checkbox" id="sms-on-capture" style="accent-color:var(--accent)"> New item captured to Inbox
+                        </label>
+                        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-secondary);cursor:pointer;text-transform:none;letter-spacing:0">
+                            <input type="checkbox" id="sms-on-complete" style="accent-color:var(--accent)"> Task completed
+                        </label>
+                        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-secondary);cursor:pointer;text-transform:none;letter-spacing:0">
+                            <input type="checkbox" id="sms-on-delegate" style="accent-color:var(--accent)"> Task delegated
+                        </label>
+                    </div>
+                </div>
+                <button class="btn-primary" id="sms-settings-save">Save Settings</button>
+                <button class="btn-primary" id="sms-test" style="margin-top:8px;background:linear-gradient(135deg,#34d399,#06b6d4)">📨 Send Test SMS</button>
+                <div id="sms-status" style="margin-top:12px;font-size:13px;color:var(--text-muted);text-align:center"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toast-container"></div>
+    <script src="app.js"></script>
+</body>
+</html>
