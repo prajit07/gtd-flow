@@ -85,12 +85,16 @@ function buildPendingList() {
 }
 
 function buildItemDetail(item) {
-    let detail = '';
-    if (item.dueDate) detail += ` | Deadline: ${item.dueDate}`;
-    if (item.context && item.context !== '@anywhere') detail += ` | Context: ${item.context}`;
-    if (item.delegatedTo) detail += ` | Assigned to: ${item.delegatedTo}`;
-    if (item.notes) detail += ` | Notes: ${item.notes.slice(0, 60)}`;
-    return detail;
+    let lines = [];
+    if (item.dueDate) {
+        let dt = item.dueDate;
+        if (item.dueTime) dt += ' at ' + item.dueTime;
+        lines.push(`📅 Scheduled: ${dt}`);
+    }
+    if (item.context && item.context !== '@anywhere') lines.push(`📍 Context: ${item.context}`);
+    if (item.delegatedTo) lines.push(`👤 Delegated: ${item.delegatedTo}`);
+    if (item.notes) lines.push(`📝 Notes: ${item.notes.slice(0, 100)}`);
+    return lines.length ? '\n' + lines.join('\n') : '';
 }
 
 // --- Toast ---
@@ -457,7 +461,12 @@ document.getElementById('delegate-save').addEventListener('click', () => {
     item.notes = document.getElementById('delegate-notes').value;
     saveData(data); closeProcessModal(); updateBadges(); renderView();
     toast('Added to Waiting For');
-    if (smsSettings.onDelegate && smsConfigured()) sendNotification(`👤 You delegated this to-do: "${item.title}" → ${item.delegatedTo}${item.dueDate ? ' | Follow up: ' + item.dueDate : ''}\n\nYour checklist to-do:\n${buildPendingList()}`);
+    if (smsSettings.onDelegate && smsConfigured()) {
+        let msg = `👤 You delegated: "${item.title}"\n→ To: ${item.delegatedTo}`;
+        if (item.dueDate) msg += `\n📅 Follow up: ${item.dueDate}`;
+        msg += `\n\nYour checklist:\n${buildPendingList()}`;
+        sendNotification(msg);
+    }
 });
 
 // Save schedule
@@ -607,7 +616,7 @@ function sendReminder(id) {
     const item = data.items.find(i => i.id === id);
     if (!item) return;
     let msg = `⏰ Reminder for your to-do: "${item.title}"${buildItemDetail(item)}`;
-    msg += `\n\nYour checklist to-do:\n${buildPendingList()}`;
+    msg += `\n\nYour checklist:\n${buildPendingList()}`;
     sendNotification(msg);
 }
 
