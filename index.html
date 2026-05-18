@@ -196,6 +196,7 @@
                 <div class="form-group"><label>Time</label><select id="edit-time" class="form-select"><option value="5">5 min</option><option value="15">15 min</option><option value="30">30 min</option><option value="60">1 hr</option><option value="120">2+ hrs</option></select></div>
                 <div class="form-group"><label>Delegated To</label><input type="text" id="edit-delegated" class="form-input" placeholder="Who?"></div>
                 <div class="form-group"><label>Due Date</label><input type="date" id="edit-due" class="form-input"></div>
+                <div class="form-group"><label>Due Time</label><input type="time" id="edit-due-time" class="form-input"></div>
                 <div class="form-group"><label>Notes</label><textarea id="edit-notes" class="form-textarea" rows="3" placeholder="Notes..."></textarea></div>
                 <div class="edit-actions"><button class="btn-primary" id="edit-save">Save Changes</button><button class="btn-danger" id="edit-delete">Delete</button></div>
             </div>
@@ -240,6 +241,9 @@
                         </label>
                         <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-secondary);cursor:pointer;text-transform:none;letter-spacing:0">
                             <input type="checkbox" id="sms-on-delegate" style="accent-color:var(--accent)"> Task delegated
+                        </label>
+                        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-secondary);cursor:pointer;text-transform:none;letter-spacing:0">
+                            <input type="checkbox" id="sms-on-calendar" style="accent-color:var(--accent)" checked> Scheduled Calendar Event reminder
                         </label>
                     </div>
                 </div>

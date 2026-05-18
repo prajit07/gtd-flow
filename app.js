@@ -6,7 +6,7 @@
 const STORAGE_KEY = 'gtd_flow_data';
 const SMS_SETTINGS_KEY = 'gtd_sms_settings';
 const defaultData = () => ({ items: [], projects: [], reviewChecklist: {} });
-const defaultSmsSettings = () => ({ apiKey: '', fromPhone: '', toPhone: '', onCapture: false, onComplete: false, onDelegate: false });
+const defaultSmsSettings = () => ({ apiKey: '', fromPhone: '', toPhone: '', onCapture: false, onComplete: false, onDelegate: false, onCalendar: true });
 
 function loadSmsSettings() {
     try { return JSON.parse(localStorage.getItem(SMS_SETTINGS_KEY)) || defaultSmsSettings(); }
@@ -145,7 +145,7 @@ function captureItem() {
     data.items.push({
         id: genId(), title, notes: '', category: 'inbox', context: '@anywhere',
         projectId: '', energy: 'medium', timeEstimate: 30, delegatedTo: '',
-        dueDate: '', completed: false, createdAt: new Date().toISOString(), completedAt: null
+        dueDate: '', dueTime: '', reminderSent: false, completed: false, createdAt: new Date().toISOString(), completedAt: null
     });
     saveData(data); captureInput.value = '';
     updateBadges(); if (currentView === 'inbox') renderView();
@@ -196,7 +196,14 @@ function renderTaskCard(item, showProcess = false) {
     if (item.energy && item.category === 'next') tags.push(`<span class="task-tag tag-energy">${item.energy}</span>`);
     if (item.timeEstimate && item.category === 'next') tags.push(`<span class="task-tag tag-time">${item.timeEstimate}min</span>`);
     if (item.delegatedTo) tags.push(`<span class="task-tag tag-delegated">→ ${item.delegatedTo}</span>`);
-    if (item.dueDate) tags.push(`<span class="task-tag tag-due">📅 ${formatDate(item.dueDate)}</span>`);
+    if (item.dueDate) {
+        let tagText = `📅 ${formatDate(item.dueDate)}`;
+        if (item.dueTime) tagText += ` at ${item.dueTime}`;
+        tags.push(`<span class="task-tag tag-due">${tagText}</span>`);
+    }
+
+    const gcalUrl = (item.category === 'calendar' && item.dueDate) ? 
+        `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(item.title)}&details=${encodeURIComponent(item.notes || '')}&dates=${item.dueDate.replace(/-/g, '')}${item.dueTime ? 'T' + item.dueTime.replace(/:/g, '') + '00/' + item.dueDate.replace(/-/g, '') + 'T' + item.dueTime.replace(/:/g, '') + '00' : '/' + item.dueDate.replace(/-/g, '')}` : '';
 
     return `<div class="task-card ${item.completed ? 'completed' : ''}" data-id="${item.id}">
         <button class="task-checkbox ${item.completed ? 'checked' : ''}" data-id="${item.id}" onclick="event.stopPropagation(); window.GTD.toggleComplete('${item.id}')">${item.completed ? '✓' : ''}</button>
@@ -206,6 +213,7 @@ function renderTaskCard(item, showProcess = false) {
         </div>
         <div class="task-actions">
             ${showProcess ? `<button class="task-action-btn process-action" title="Process" onclick="event.stopPropagation(); window.GTD.processItem('${item.id}')">🔍</button>` : ''}
+            ${gcalUrl ? `<a class="task-action-btn" title="Add to Google Calendar" href="${gcalUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();" style="text-decoration:none">🗓️</a>` : ''}
             ${smsConfigured() ? `<button class="task-action-btn" title="Send SMS Reminder" onclick="event.stopPropagation(); window.GTD.sendReminder('${item.id}')">📱</button>` : ''}
             <button class="task-action-btn" title="Edit" onclick="event.stopPropagation(); window.GTD.editItem('${item.id}')">✏️</button>
             <button class="task-action-btn delete-action" title="Delete" onclick="event.stopPropagation(); window.GTD.deleteItem('${item.id}')">🗑️</button>
@@ -445,6 +453,8 @@ document.getElementById('schedule-save').addEventListener('click', () => {
     if (!item) return;
     item.category = 'calendar';
     item.dueDate = document.getElementById('schedule-date').value;
+    item.dueTime = document.getElementById('schedule-time').value;
+    item.reminderSent = false;
     item.notes = document.getElementById('schedule-notes').value;
     saveData(data); closeProcessModal(); updateBadges(); renderView();
     toast('Added to Calendar');
@@ -464,6 +474,7 @@ function editItem(id) {
     document.getElementById('edit-time').value = item.timeEstimate || 30;
     document.getElementById('edit-delegated').value = item.delegatedTo || '';
     document.getElementById('edit-due').value = item.dueDate || '';
+    document.getElementById('edit-due-time').value = item.dueTime || '';
     document.getElementById('edit-notes').value = item.notes || '';
     document.getElementById('edit-modal').classList.add('show');
 }
@@ -482,6 +493,10 @@ document.getElementById('edit-save').addEventListener('click', () => {
     item.timeEstimate = parseInt(document.getElementById('edit-time').value);
     item.delegatedTo = document.getElementById('edit-delegated').value;
     item.dueDate = document.getElementById('edit-due').value;
+    item.dueTime = document.getElementById('edit-due-time').value;
+    if (item.dueDate !== document.getElementById('edit-due').value || item.dueTime !== document.getElementById('edit-due-time').value) {
+        item.reminderSent = false;
+    }
     item.notes = document.getElementById('edit-notes').value;
     saveData(data); document.getElementById('edit-modal').classList.remove('show');
     updateBadges(); renderView(); toast('Item updated');
@@ -512,7 +527,7 @@ function addTaskToProject(projectId) {
     data.items.push({
         id: genId(), title: title.trim(), notes: '', category: 'next', context: '@anywhere',
         projectId, energy: 'medium', timeEstimate: 30, delegatedTo: '',
-        dueDate: '', completed: false, createdAt: new Date().toISOString(), completedAt: null
+        dueDate: '', dueTime: '', reminderSent: false, completed: false, createdAt: new Date().toISOString(), completedAt: null
     });
     saveData(data); updateBadges(); renderView(); toast('Task added to project');
 }
@@ -591,6 +606,9 @@ function showSmsSettings() {
     document.getElementById('sms-on-capture').checked = smsSettings.onCapture;
     document.getElementById('sms-on-complete').checked = smsSettings.onComplete;
     document.getElementById('sms-on-delegate').checked = smsSettings.onDelegate;
+    if (document.getElementById('sms-on-calendar')) {
+        document.getElementById('sms-on-calendar').checked = smsSettings.onCalendar !== false;
+    }
     document.getElementById('sms-status').textContent = '';
     document.getElementById('sms-settings-modal').classList.add('show');
 }
@@ -605,6 +623,9 @@ document.getElementById('sms-settings-save').addEventListener('click', () => {
     smsSettings.onCapture = document.getElementById('sms-on-capture').checked;
     smsSettings.onComplete = document.getElementById('sms-on-complete').checked;
     smsSettings.onDelegate = document.getElementById('sms-on-delegate').checked;
+    if (document.getElementById('sms-on-calendar')) {
+        smsSettings.onCalendar = document.getElementById('sms-on-calendar').checked;
+    }
     saveSmsSettings(smsSettings);
     toast('SMS settings saved');
     document.getElementById('sms-status').textContent = '✅ Settings saved!';
@@ -631,5 +652,23 @@ window.GTD = { processItem, editItem, deleteItem, toggleComplete, showProjectMod
 // --- Init ---
 updateBadges();
 renderView();
+
+// --- Background Reminder Check ---
+function checkReminders() {
+    if (!smsSettings.onCalendar || !smsConfigured()) return;
+    const now = new Date();
+    data.items.forEach(item => {
+        if (!item.completed && item.dueDate && item.dueTime && !item.reminderSent && item.category === 'calendar') {
+            const due = new Date(`${item.dueDate}T${item.dueTime}`);
+            if (now >= due) {
+                item.reminderSent = true;
+                saveData(data);
+                sendSMS(`⏰ Event Starting: "${item.title}"\n${buildItemDetail(item)}`);
+            }
+        }
+    });
+}
+setInterval(checkReminders, 60000); // Check every minute
+checkReminders(); // Initial check on load
 
 })();
