@@ -17,7 +17,7 @@ A premium, dark-themed productivity web app implementing **David Allen's Getting
 - **⚡ Next Actions** — Tasks grouped by context (`@home`, `@work`, `@errands`, `@computer`, `@phone`, `@anywhere`)
 - **📂 Projects** — Multi-step outcomes with visual progress bars and linked tasks
 - **⏳ Waiting For** — Track delegated items with follow-up dates
-- **📅 Calendar** — Date-specific actions sorted chronologically
+- **📅 Calendar** — Date and time-specific actions sorted chronologically, with 1-click **Google Calendar export**
 - **💭 Someday / Maybe** — Park ideas for future consideration
 - **📚 Reference** — File non-actionable info for later use
 
@@ -33,6 +33,7 @@ A premium, dark-themed productivity web app implementing **David Allen's Getting
   - Complete a task
   - Delegate a task
 - **Per-task SMS reminders** — click 📱 on any task to send yourself a reminder
+- **Automated Event Reminders** — receive an SMS exactly at the scheduled time of a calendar event (requires app to remain open)
 - Every SMS includes your **full pending checklist** and deadline details
 - **Send Test SMS** button to verify your setup
 
