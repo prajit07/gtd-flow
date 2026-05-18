@@ -6,7 +6,7 @@
 const STORAGE_KEY = 'gtd_flow_data';
 const SMS_SETTINGS_KEY = 'gtd_sms_settings';
 const defaultData = () => ({ items: [], projects: [], reviewChecklist: {} });
-const defaultSmsSettings = () => ({ apiKey: '', fromPhone: '', toPhone: '', onCapture: false, onComplete: false, onDelegate: false, onCalendar: true });
+const defaultSmsSettings = () => ({ apiKey: '', fromPhone: '', toPhone: '', waApiKey: '', waPhone: '', onCapture: false, onComplete: false, onDelegate: false, onCalendar: true });
 
 function loadSmsSettings() {
     try { return JSON.parse(localStorage.getItem(SMS_SETTINGS_KEY)) || defaultSmsSettings(); }
@@ -29,34 +29,47 @@ let searchQuery = '';
 
 function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
 
-// --- httpSMS Integration ---
-async function sendSMS(message) {
-    if (!smsSettings.apiKey || !smsSettings.fromPhone || !smsSettings.toPhone) {
-        console.warn('SMS not configured'); return { ok: false, error: 'SMS not configured' };
+// --- Notifications Integration ---
+async function sendNotification(message) {
+    let sent = false;
+    let err = null;
+
+    // SMS via httpSMS
+    if (smsSettings.apiKey && smsSettings.fromPhone && smsSettings.toPhone) {
+        try {
+            const resp = await fetch('https://api.httpsms.com/v1/messages/send', {
+                method: 'POST',
+                headers: { 'x-api-key': smsSettings.apiKey, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content: message, from: smsSettings.fromPhone, to: smsSettings.toPhone })
+            });
+            const json = await resp.json();
+            if (resp.ok) { sent = true; toast('📱 SMS sent!'); }
+            else { err = json.message || resp.statusText; toast('SMS failed: ' + err, 'error'); }
+        } catch (e) { err = e.message; toast('SMS error: ' + err, 'error'); }
     }
-    try {
-        const resp = await fetch('https://api.httpsms.com/v1/messages/send', {
-            method: 'POST',
-            headers: {
-                'x-api-key': smsSettings.apiKey,
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                content: message,
-                from: smsSettings.fromPhone,
-                to: smsSettings.toPhone
-            })
-        });
-        const json = await resp.json();
-        if (resp.ok) { toast('📱 SMS sent!'); return { ok: true, data: json }; }
-        else { toast('SMS failed: ' + (json.message || resp.statusText), 'error'); return { ok: false, error: json.message }; }
-    } catch (err) {
-        toast('SMS error: ' + err.message, 'error'); return { ok: false, error: err.message };
+
+    // WhatsApp via CallMeBot
+    if (smsSettings.waApiKey && smsSettings.waPhone) {
+        try {
+            const url = `https://api.callmebot.com/whatsapp.php?phone=${encodeURIComponent(smsSettings.waPhone)}&text=${encodeURIComponent(message)}&apikey=${encodeURIComponent(smsSettings.waApiKey)}`;
+            await fetch(url, { mode: 'no-cors' });
+            sent = true;
+            toast('💬 WhatsApp sent!');
+        } catch (e) { err = e.message; toast('WhatsApp error: ' + err, 'error'); }
     }
+
+    if (!sent && !err) {
+        console.warn('Notifications not configured'); 
+        return { ok: false, error: 'Notifications not configured' };
+    }
+    return { ok: sent, error: err };
 }
 
-function smsConfigured() { return smsSettings.apiKey && smsSettings.fromPhone && smsSettings.toPhone; }
+function smsConfigured() { 
+    const hasSms = smsSettings.apiKey && smsSettings.fromPhone && smsSettings.toPhone;
+    const hasWa = smsSettings.waApiKey && smsSettings.waPhone;
+    return hasSms || hasWa;
+}
 
 function buildPendingList() {
     const pending = data.items.filter(i => !i.completed);
@@ -150,7 +163,7 @@ function captureItem() {
     saveData(data); captureInput.value = '';
     updateBadges(); if (currentView === 'inbox') renderView();
     toast('Captured to Inbox');
-    if (smsSettings.onCapture && smsConfigured()) sendSMS(`📥 You added this to-do: "${title}"\n\nYour checklist to-do:\n${buildPendingList()}`);
+    if (smsSettings.onCapture && smsConfigured()) sendNotification(`📥 You added this to-do: "${title}"\n\nYour checklist to-do:\n${buildPendingList()}`);
 }
 captureBtn.addEventListener('click', captureItem);
 captureInput.addEventListener('keydown', e => { if (e.key === 'Enter') captureItem(); });
@@ -214,7 +227,7 @@ function renderTaskCard(item, showProcess = false) {
         <div class="task-actions">
             ${showProcess ? `<button class="task-action-btn process-action" title="Process" onclick="event.stopPropagation(); window.GTD.processItem('${item.id}')">🔍</button>` : ''}
             ${gcalUrl ? `<a class="task-action-btn" title="Add to Google Calendar" href="${gcalUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();" style="text-decoration:none">🗓️</a>` : ''}
-            ${smsConfigured() ? `<button class="task-action-btn" title="Send SMS Reminder" onclick="event.stopPropagation(); window.GTD.sendReminder('${item.id}')">📱</button>` : ''}
+            ${smsConfigured() ? `<button class="task-action-btn" title="Send Reminder" onclick="event.stopPropagation(); window.GTD.sendReminder('${item.id}')">📱</button>` : ''}
             <button class="task-action-btn" title="Edit" onclick="event.stopPropagation(); window.GTD.editItem('${item.id}')">✏️</button>
             <button class="task-action-btn delete-action" title="Delete" onclick="event.stopPropagation(); window.GTD.deleteItem('${item.id}')">🗑️</button>
         </div>
@@ -385,7 +398,7 @@ document.querySelectorAll('.process-btn').forEach(btn => {
                 item.completed = true; item.completedAt = new Date().toISOString();
                 saveData(data); closeProcessModal(); updateBadges(); renderView();
                 toast('Marked as done!');
-                if (smsSettings.onComplete && smsConfigured()) sendSMS(`✅ You completed: "${item.title}"\n\nRemaining to-do:\n${buildPendingList()}`);
+                if (smsSettings.onComplete && smsConfigured()) sendNotification(`✅ You completed: "${item.title}"\n\nRemaining to-do:\n${buildPendingList()}`);
                 break;
             case 'trash':
                 data.items = data.items.filter(i => i.id !== processingItemId);
@@ -444,7 +457,7 @@ document.getElementById('delegate-save').addEventListener('click', () => {
     item.notes = document.getElementById('delegate-notes').value;
     saveData(data); closeProcessModal(); updateBadges(); renderView();
     toast('Added to Waiting For');
-    if (smsSettings.onDelegate && smsConfigured()) sendSMS(`👤 You delegated this to-do: "${item.title}" → ${item.delegatedTo}${item.dueDate ? ' | Follow up: ' + item.dueDate : ''}\n\nYour checklist to-do:\n${buildPendingList()}`);
+    if (smsSettings.onDelegate && smsConfigured()) sendNotification(`👤 You delegated this to-do: "${item.title}" → ${item.delegatedTo}${item.dueDate ? ' | Follow up: ' + item.dueDate : ''}\n\nYour checklist to-do:\n${buildPendingList()}`);
 });
 
 // Save schedule
@@ -552,7 +565,7 @@ function toggleComplete(id) {
     item.completedAt = item.completed ? new Date().toISOString() : null;
     saveData(data); updateBadges(); renderView();
     toast(item.completed ? 'Task completed! 🎉' : 'Task reopened');
-    if (item.completed && smsSettings.onComplete && smsConfigured()) sendSMS(`✅ You completed: "${item.title}"\n\nRemaining to-do:\n${buildPendingList()}`);
+    if (item.completed && smsSettings.onComplete && smsConfigured()) sendNotification(`✅ You completed: "${item.title}"\n\nRemaining to-do:\n${buildPendingList()}`);
 }
 
 function deleteItem(id) {
@@ -595,11 +608,13 @@ function sendReminder(id) {
     if (!item) return;
     let msg = `⏰ Reminder for your to-do: "${item.title}"${buildItemDetail(item)}`;
     msg += `\n\nYour checklist to-do:\n${buildPendingList()}`;
-    sendSMS(msg);
+    sendNotification(msg);
 }
 
 // --- SMS Settings Modal ---
 function showSmsSettings() {
+    document.getElementById('wa-api-key').value = smsSettings.waApiKey || '';
+    document.getElementById('wa-phone').value = smsSettings.waPhone || '';
     document.getElementById('sms-api-key').value = smsSettings.apiKey;
     document.getElementById('sms-from-phone').value = smsSettings.fromPhone;
     document.getElementById('sms-to-phone').value = smsSettings.toPhone;
@@ -617,6 +632,8 @@ document.getElementById('sms-settings-close').addEventListener('click', () => do
 document.getElementById('sms-settings-modal').addEventListener('click', e => { if (e.target === e.currentTarget) document.getElementById('sms-settings-modal').classList.remove('show'); });
 
 document.getElementById('sms-settings-save').addEventListener('click', () => {
+    smsSettings.waApiKey = document.getElementById('wa-api-key').value.trim();
+    smsSettings.waPhone = document.getElementById('wa-phone').value.trim();
     smsSettings.apiKey = document.getElementById('sms-api-key').value.trim();
     smsSettings.fromPhone = document.getElementById('sms-from-phone').value.trim();
     smsSettings.toPhone = document.getElementById('sms-to-phone').value.trim();
@@ -635,14 +652,16 @@ document.getElementById('sms-settings-save').addEventListener('click', () => {
 document.getElementById('sms-test').addEventListener('click', async () => {
     const statusEl = document.getElementById('sms-status');
     // Save first
+    smsSettings.waApiKey = document.getElementById('wa-api-key').value.trim();
+    smsSettings.waPhone = document.getElementById('wa-phone').value.trim();
     smsSettings.apiKey = document.getElementById('sms-api-key').value.trim();
     smsSettings.fromPhone = document.getElementById('sms-from-phone').value.trim();
     smsSettings.toPhone = document.getElementById('sms-to-phone').value.trim();
     saveSmsSettings(smsSettings);
-    if (!smsConfigured()) { statusEl.textContent = '❌ Fill in API key and both phone numbers first'; statusEl.style.color = 'var(--danger)'; return; }
-    statusEl.textContent = '⏳ Sending test SMS...'; statusEl.style.color = 'var(--warning)';
-    const result = await sendSMS('🧪 GTD Flow test — httpSMS integration is working! Your tasks will now send SMS notifications.');
-    if (result.ok) { statusEl.textContent = '✅ Test SMS sent successfully!'; statusEl.style.color = 'var(--success)'; }
+    if (!smsConfigured()) { statusEl.textContent = '❌ Fill in at least one API key and phone number'; statusEl.style.color = 'var(--danger)'; return; }
+    statusEl.textContent = '⏳ Sending test notification...'; statusEl.style.color = 'var(--warning)';
+    const result = await sendNotification('🧪 GTD Flow test — Notifications integration is working! Your tasks will now send reminders.');
+    if (result.ok) { statusEl.textContent = '✅ Test notification sent successfully!'; statusEl.style.color = 'var(--success)'; }
     else { statusEl.textContent = '❌ Failed: ' + (result.error || 'Unknown error'); statusEl.style.color = 'var(--danger)'; }
 });
 
@@ -663,7 +682,7 @@ function checkReminders() {
             if (now >= due) {
                 item.reminderSent = true;
                 saveData(data);
-                sendSMS(`⏰ Event Starting: "${item.title}"\n${buildItemDetail(item)}`);
+                sendNotification(`⏰ Event Starting: "${item.title}"\n${buildItemDetail(item)}`);
             }
         }
     });
