@@ -88,6 +88,24 @@
                     <p>"Your mind is for having ideas, not holding them."</p>
                     <span>— David Allen</span>
                 </div>
+                <div class="sidebar-credit">
+                    <p>Built by <span class="credit-name">Prajit Janakiraman</span></p>
+                    <div class="credit-links">
+                        <a href="https://github.com/prajit07" target="_blank" rel="noopener noreferrer" class="credit-link github">
+                            <svg class="credit-icon" viewBox="0 0 24 24" width="12" height="12" fill="currentColor">
+                                <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.579.688.481C19.137 20.162 22 16.418 22 12c0-5.523-4.477-10-10-10z"/>
+                            </svg>
+                            GitHub
+                        </a>
+                        <span class="credit-divider">•</span>
+                        <a href="https://linkedin.com/in/prajitjanakiraman" target="_blank" rel="noopener noreferrer" class="credit-link linkedin">
+                            <svg class="credit-icon" viewBox="0 0 24 24" width="12" height="12" fill="currentColor">
+                                <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.779-1.75-1.75s.784-1.75 1.75-1.75 1.75.779 1.75 1.75-.784 1.75-1.75 1.75zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                            </svg>
+                            LinkedIn
+                        </a>
+                    </div>
+                </div>
             </div>
         </aside>
 
@@ -101,6 +119,10 @@
                     <p id="view-subtitle">Capture everything on your mind</p>
                 </div>
                 <div class="topbar-actions">
+                    <div id="calendar-toggle-container" style="display:none; gap: 8px; margin-right: 12px;">
+                        <button class="project-action-btn" id="btn-calendar-list" style="background:var(--bg-card-hover); color:var(--text-primary)">📋 List</button>
+                        <button class="project-action-btn" id="btn-calendar-grid">📅 Grid</button>
+                    </div>
                     <div class="search-box">
                         <span class="search-icon">🔍</span>
                         <input type="text" id="search-input" placeholder="Search tasks..." autocomplete="off">
@@ -109,8 +131,16 @@
             </header>
 
             <div class="capture-bar" id="capture-bar">
+                <div class="capture-tabs" style="display: flex; gap: 8px; margin-bottom: 12px; padding-left: 4px;">
+                    <button class="capture-tab-btn active" id="capture-tab-task" onclick="window.GTD.setCaptureMode('task')" style="background: var(--bg-card); border: 1px solid var(--border); color: var(--text-secondary); padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; font-family: inherit;">
+                        <span>📋</span> Task Flow
+                    </button>
+                    <button class="capture-tab-btn" id="capture-tab-event" onclick="window.GTD.setCaptureMode('event')" style="background: transparent; border: 1px solid transparent; color: var(--text-muted); padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; font-family: inherit;">
+                        <span>📅</span> Calendar Event
+                    </button>
+                </div>
                 <div class="capture-input-wrapper">
-                    <span class="capture-icon">+</span>
+                    <span class="capture-icon" id="capture-mode-icon">+</span>
                     <input type="text" id="capture-input" placeholder="What's on your mind? Capture it here..." autocomplete="off">
                     <button class="capture-btn" id="capture-btn" aria-label="Capture task">→</button>
                 </div>
@@ -122,37 +152,114 @@
 
     <!-- Process Modal -->
     <div class="modal-overlay" id="process-modal">
-        <div class="modal">
-            <div class="modal-header">
-                <h2>🔍 Process Item</h2>
-                <button class="modal-close" id="process-modal-close">&times;</button>
-            </div>
-            <div class="modal-body" id="process-main-view">
-                <div class="process-item-title" id="process-item-title"></div>
-                <div class="process-question"><p>Is it actionable?</p></div>
-                <div class="process-actions">
-                    <div class="process-actionable">
-                        <h3>✅ Yes, it's actionable</h3>
-                        <div class="process-options">
-                            <button class="process-btn" data-action="do-it"><span class="process-btn-icon">⚡</span><span class="process-btn-label">Do It Now</span><span class="process-btn-desc">Less than 2 minutes</span></button>
-                            <button class="process-btn" data-action="delegate"><span class="process-btn-icon">👤</span><span class="process-btn-label">Delegate It</span><span class="process-btn-desc">Someone else should do this</span></button>
-                            <button class="process-btn" data-action="defer"><span class="process-btn-icon">📋</span><span class="process-btn-label">Defer It</span><span class="process-btn-desc">Add to Next Actions</span></button>
-                            <button class="process-btn" data-action="schedule"><span class="process-btn-icon">📅</span><span class="process-btn-label">Schedule It</span><span class="process-btn-desc">Add to Calendar</span></button>
-                        </div>
-                    </div>
-                    <div class="process-not-actionable">
-                        <h3>❌ Not actionable</h3>
-                        <div class="process-options">
-                            <button class="process-btn" data-action="trash"><span class="process-btn-icon">🗑️</span><span class="process-btn-label">Trash It</span><span class="process-btn-desc">Delete permanently</span></button>
-                            <button class="process-btn" data-action="someday"><span class="process-btn-icon">💭</span><span class="process-btn-label">Someday / Maybe</span><span class="process-btn-desc">Revisit later</span></button>
-                            <button class="process-btn" data-action="reference"><span class="process-btn-icon">📚</span><span class="process-btn-label">Reference</span><span class="process-btn-desc">File for future use</span></button>
-                        </div>
+        <div class="modal" style="position:relative; overflow:hidden;">
+            <!-- Step 1: Actionable? -->
+            <div class="wizard-step" id="process-step-1">
+                <div class="modal-header">
+                    <h2>🔍 Process Item</h2>
+                    <button class="modal-close" id="process-modal-close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="process-item-title" id="process-item-title"></div>
+                    <div class="process-question"><p>Is this item actionable?</p></div>
+                    <div class="wizard-choices-row" style="display:flex; gap:16px; margin-top:20px;">
+                        <button class="wizard-choice-btn success" id="process-actionable-yes" style="flex:1; padding:24px; background:rgba(52,211,153,0.1); border:1px solid rgba(52,211,153,0.3); border-radius:var(--radius); cursor:pointer; color:var(--text-primary); transition:all 0.2s;">
+                            <span style="font-size:32px; display:block; margin-bottom:8px;">✅</span>
+                            <span style="font-weight:700; font-size:16px; display:block;">Yes</span>
+                            <span style="font-size:12px; color:var(--text-secondary); display:block; margin-top:4px;">Requires an action</span>
+                        </button>
+                        <button class="wizard-choice-btn danger" id="process-actionable-no" style="flex:1; padding:24px; background:rgba(248,113,113,0.1); border:1px solid rgba(248,113,113,0.3); border-radius:var(--radius); cursor:pointer; color:var(--text-primary); transition:all 0.2s;">
+                            <span style="font-size:32px; display:block; margin-bottom:8px;">❌</span>
+                            <span style="font-weight:700; font-size:16px; display:block;">No</span>
+                            <span style="font-size:12px; color:var(--text-secondary); display:block; margin-top:4px;">Trash, Someday, or Reference</span>
+                        </button>
                     </div>
                 </div>
             </div>
-            <!-- Sub-views for defer/delegate/schedule -->
+
+            <!-- Step 2a: Non-Actionable Pathway -->
+            <div class="wizard-step" id="process-step-2a" style="display:none;">
+                <div class="modal-header">
+                    <button class="modal-back" id="step-2a-back">← Back</button>
+                    <h2>❌ Non-Actionable Options</h2>
+                    <button class="modal-close" onclick="window.GTD.closeProcessModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="process-options">
+                        <button class="process-btn" data-action="trash"><span class="process-btn-icon">🗑️</span><div><span class="process-btn-label">Trash It</span><span class="process-btn-desc">Delete permanently</span></div></button>
+                        <button class="process-btn" data-action="someday"><span class="process-btn-icon">💭</span><div><span class="process-btn-label">Someday / Maybe</span><span class="process-btn-desc">Revisit later when time permits</span></div></button>
+                        <button class="process-btn" data-action="reference"><span class="process-btn-icon">📚</span><div><span class="process-btn-label">Reference</span><span class="process-btn-desc">File away for safe information retrieval</span></div></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2b: Actionable Pathway (< 2 mins?) -->
+            <div class="wizard-step" id="process-step-2b" style="display:none;">
+                <div class="modal-header">
+                    <button class="modal-back" id="step-2b-back">← Back</button>
+                    <h2>⚡ Action Time Check</h2>
+                    <button class="modal-close" onclick="window.GTD.closeProcessModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="process-question" style="text-align:center;"><p style="font-size:16px;">Will this task take <b>less than 2 minutes</b> to complete?</p></div>
+                    <div class="wizard-choices-row" style="display:flex; gap:16px; margin-top:24px;">
+                        <button class="wizard-choice-btn success" id="process-time-under" style="flex:1; padding:20px; background:rgba(52,211,153,0.1); border:1px solid rgba(52,211,153,0.3); border-radius:var(--radius); cursor:pointer; color:var(--text-primary); transition:all 0.2s;">
+                            <span style="font-size:28px; display:block; margin-bottom:8px;">⚡</span>
+                            <span style="font-weight:700; display:block;">Yes (&lt; 2 mins)</span>
+                            <span style="font-size:12px; color:var(--text-secondary); display:block; margin-top:4px;">Do it immediately!</span>
+                        </button>
+                        <button class="wizard-choice-btn info" id="process-time-over" style="flex:1; padding:20px; background:rgba(129,140,248,0.1); border:1px solid rgba(129,140,248,0.3); border-radius:var(--radius); cursor:pointer; color:var(--text-primary); transition:all 0.2s;">
+                            <span style="font-size:28px; display:block; margin-bottom:8px;">📋</span>
+                            <span style="font-weight:700; display:block;">No (&gt; 2 mins)</span>
+                            <span style="font-size:12px; color:var(--text-secondary); display:block; margin-top:4px;">Defer, Delegate, or Schedule</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3a: Under 2 Minutes Timer -->
+            <div class="wizard-step" id="process-step-timer" style="display:none;">
+                <div class="modal-header">
+                    <button class="modal-back" id="step-timer-back">← Back</button>
+                    <h2>⚡ Do It Now</h2>
+                    <button class="modal-close" onclick="window.GTD.closeProcessModal()">&times;</button>
+                </div>
+                <div class="modal-body" style="text-align:center; padding:12px 24px;">
+                    <p style="font-size:14px; color:var(--text-secondary); margin-bottom:16px;">This action takes less than 2 minutes. Do it right now!</p>
+                    <div class="timer-container" style="position:relative; width:160px; height:160px; margin:0 auto 24px; display:flex; align-items:center; justify-content:center;">
+                        <svg width="160" height="160" style="transform:rotate(-90deg)">
+                            <circle cx="80" cy="80" r="70" stroke="var(--border)" stroke-width="8" fill="transparent"/>
+                            <circle id="timer-progress" cx="80" cy="80" r="70" stroke="var(--success)" stroke-width="8" fill="transparent" stroke-dasharray="440" stroke-dashoffset="0" style="transition:stroke-dashoffset 0.1s linear;"/>
+                        </svg>
+                        <div id="timer-display" style="position:absolute; font-size:32px; font-weight:800; color:var(--text-primary)">02:00</div>
+                    </div>
+                    <div style="display:flex; gap:12px; max-width:280px; margin:0 auto;">
+                        <button class="btn-primary" id="timer-toggle-btn" style="flex:1;">Pause</button>
+                        <button class="btn-primary" id="timer-done-btn" style="flex:1; background:linear-gradient(135deg,#34d399,#059669)">Done ✓</button>
+                    </div>
+                    <button class="btn-danger" id="timer-skip-btn" style="border:none; background:transparent; font-size:13px; margin-top:16px; cursor:pointer;">Skip and Defer instead</button>
+                </div>
+            </div>
+
+            <!-- Step 3b: Actionable Pathway (Over 2 mins Options) -->
+            <div class="wizard-step" id="process-step-3b" style="display:none;">
+                <div class="modal-header">
+                    <button class="modal-back" id="step-3b-back">← Back</button>
+                    <h2>📋 Organize Actionable Item</h2>
+                    <button class="modal-close" onclick="window.GTD.closeProcessModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="process-options">
+                        <button class="process-btn" data-action="defer"><span class="process-btn-icon">📋</span><div><span class="process-btn-label">Defer It (Next Actions)</span><span class="process-btn-desc">Place on your Next Action list to do soon</span></div></button>
+                        <button class="process-btn" data-action="delegate"><span class="process-btn-icon">👤</span><div><span class="process-btn-label">Delegate It (Waiting For)</span><span class="process-btn-desc">Assign to someone else and set follow-up</span></div></button>
+                        <button class="process-btn" data-action="schedule"><span class="process-btn-icon">📅</span><div><span class="process-btn-label">Schedule It (Calendar)</span><span class="process-btn-desc">Put on calendar for a specific date/time</span></div></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sub-views for defer/delegate/schedule in wizard -->
             <div class="modal-subview" id="defer-subview" style="display:none;">
-                <div class="modal-header"><button class="modal-back" id="defer-back">← Back</button><h2>📋 Next Actions</h2><button class="modal-close defer-close">&times;</button></div>
+                <div class="modal-header"><button class="modal-back" id="defer-back">← Back</button><h2>📋 Next Actions</h2><button class="modal-close defer-close" onclick="window.GTD.closeProcessModal()">&times;</button></div>
                 <div class="modal-body">
                     <div class="form-group"><label>Context</label><select id="defer-context" class="form-select"><option value="@anywhere">@anywhere</option><option value="@home">@home</option><option value="@work">@work</option><option value="@computer">@computer</option><option value="@phone">@phone</option><option value="@errands">@errands</option></select></div>
                     <div class="form-group"><label>Project</label><select id="defer-project" class="form-select"><option value="">No project</option></select></div>
@@ -163,7 +270,7 @@
                 </div>
             </div>
             <div class="modal-subview" id="delegate-subview" style="display:none;">
-                <div class="modal-header"><button class="modal-back" id="delegate-back">← Back</button><h2>👤 Delegate</h2><button class="modal-close delegate-close">&times;</button></div>
+                <div class="modal-header"><button class="modal-back" id="delegate-back">← Back</button><h2>👤 Delegate</h2><button class="modal-close delegate-close" onclick="window.GTD.closeProcessModal()">&times;</button></div>
                 <div class="modal-body">
                     <div class="form-group"><label>Delegated To</label><input type="text" id="delegate-to" class="form-input" placeholder="Who?"></div>
                     <div class="form-group"><label>Follow-up Date</label><input type="date" id="delegate-due" class="form-input"></div>
@@ -172,10 +279,20 @@
                 </div>
             </div>
             <div class="modal-subview" id="schedule-subview" style="display:none;">
-                <div class="modal-header"><button class="modal-back" id="schedule-back">← Back</button><h2>📅 Schedule</h2><button class="modal-close schedule-close">&times;</button></div>
+                <div class="modal-header"><button class="modal-back" id="schedule-back">← Back</button><h2>📅 Schedule</h2><button class="modal-close schedule-close" onclick="window.GTD.closeProcessModal()">&times;</button></div>
                 <div class="modal-body">
                     <div class="form-group"><label>Date</label><input type="date" id="schedule-date" class="form-input"></div>
                     <div class="form-group"><label>Time</label><input type="time" id="schedule-time" class="form-input"></div>
+                    <div class="form-group">
+                        <label>Repeat / Recurrence</label>
+                        <select id="schedule-recurrence" class="form-select">
+                            <option value="none">🚫 Does not repeat</option>
+                            <option value="daily">🔄 Daily</option>
+                            <option value="weekly">🗓️ Weekly</option>
+                            <option value="monthly">📅 Monthly</option>
+                            <option value="yearly">🎂 Yearly (Birthday/Anniversary)</option>
+                        </select>
+                    </div>
                     <div class="form-group"><label>Notes</label><textarea id="schedule-notes" class="form-textarea" rows="3" placeholder="Add notes..."></textarea></div>
                     <button class="btn-primary" id="schedule-save">Add to Calendar</button>
                 </div>
@@ -197,6 +314,16 @@
                 <div class="form-group"><label>Delegated To</label><input type="text" id="edit-delegated" class="form-input" placeholder="Who?"></div>
                 <div class="form-group"><label>Due Date</label><input type="date" id="edit-due" class="form-input"></div>
                 <div class="form-group"><label>Due Time</label><input type="time" id="edit-due-time" class="form-input"></div>
+                <div class="form-group" id="edit-recurrence-group" style="display:none;">
+                    <label>Repeat / Recurrence</label>
+                    <select id="edit-recurrence" class="form-select">
+                        <option value="none">🚫 Does not repeat</option>
+                        <option value="daily">🔄 Daily</option>
+                        <option value="weekly">🗓️ Weekly</option>
+                        <option value="monthly">📅 Monthly</option>
+                        <option value="yearly">🎂 Yearly (Birthday/Anniversary)</option>
+                    </select>
+                </div>
                 <div class="form-group"><label>Notes</label><textarea id="edit-notes" class="form-textarea" rows="3" placeholder="Notes..."></textarea></div>
                 <div class="edit-actions"><button class="btn-primary" id="edit-save">Save Changes</button><button class="btn-danger" id="edit-delete">Delete</button></div>
             </div>
@@ -218,16 +345,70 @@
     <!-- SMS Settings Modal -->
     <div class="modal-overlay" id="sms-settings-modal">
         <div class="modal">
-            <div class="modal-header"><h2>📱 Notifications Settings</h2><button class="modal-close" id="sms-settings-close">&times;</button></div>
-            <div class="modal-body">
-                <div style="padding:12px 16px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:8px;margin-bottom:16px;font-size:13px;line-height:1.6;color:var(--text-secondary)">
-                    <strong style="color:var(--success)">WhatsApp Setup (CallMeBot):</strong><br>
-                    1. Save <b>+34 644 47 43 14</b> to your contacts<br>
-                    2. Send WhatsApp message: <code style="color:var(--success)">I allow callmebot to send me messages</code><br>
-                    3. The bot will reply with your API Key
+            <div class="modal-header">
+                <h2>⚙️ Settings</h2>
+                <button class="modal-close" id="sms-settings-close">&times;</button>
+            </div>
+            <div class="settings-tabs" style="display:flex; border-bottom:1px solid var(--border);">
+                <button class="settings-tab-btn active" id="tab-notifications" style="flex:1; background:none; border:none; border-bottom:2px solid var(--accent); color:var(--text-primary); padding:12px; font-weight:600; cursor:pointer; font-family:inherit; transition:all 0.2s;">📱 Notifications</button>
+                <button class="settings-tab-btn" id="tab-backup" style="flex:1; background:none; border:none; border-bottom:2px solid transparent; color:var(--text-secondary); padding:12px; font-weight:600; cursor:pointer; font-family:inherit; transition:all 0.2s;">💾 Backup & Data</button>
+            </div>
+            
+            <div class="modal-body" id="settings-notifications-body">
+                <div class="form-group">
+                    <label>WhatsApp / Webhook Gateway</label>
+                    <select id="wa-provider" class="form-input" style="background:var(--bg-secondary); color:var(--text-primary); border:1px solid var(--border); padding:8px 12px; border-radius:6px; width:100%; font-family:inherit;">
+                        <option value="callmebot">WhatsApp via CallMeBot (Legacy / Free)</option>
+                        <option value="twilio">WhatsApp via Twilio (Reliable Sandbox)</option>
+                        <option value="custom">Custom HTTP Webhook API (GET/POST)</option>
+                    </select>
                 </div>
-                <div class="form-group"><label>WhatsApp API Key</label><input type="password" id="wa-api-key" class="form-input" placeholder="Your CallMeBot API key"></div>
-                <div class="form-group"><label>Your WhatsApp Number</label><input type="tel" id="wa-phone" class="form-input" placeholder="+1234567890"></div>
+                
+                <!-- CallMeBot Section -->
+                <div id="wa-section-callmebot" class="wa-provider-section" style="margin-bottom:20px;">
+                    <div style="padding:12px 16px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:8px;margin-bottom:16px;font-size:13px;line-height:1.6;color:var(--text-secondary)">
+                        <strong style="color:var(--success)">WhatsApp Setup (CallMeBot):</strong><br>
+                        1. Save <b>+34 644 47 43 14</b> to your contacts<br>
+                        2. Send WhatsApp message: <code style="color:var(--success)">I allow callmebot to send me messages</code><br>
+                        3. The bot will reply with your API Key
+                    </div>
+                    <div class="form-group"><label>WhatsApp API Key</label><input type="password" id="wa-api-key" class="form-input" placeholder="Your CallMeBot API key"></div>
+                    <div class="form-group"><label>Your WhatsApp Number</label><input type="tel" id="wa-phone" class="form-input" placeholder="+1234567890"></div>
+                </div>
+
+                <!-- Twilio Section -->
+                <div id="wa-section-twilio" class="wa-provider-section" style="margin-bottom:20px; display:none;">
+                    <div style="padding:12px 16px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);border-radius:8px;margin-bottom:16px;font-size:13px;line-height:1.6;color:var(--text-secondary)">
+                        <strong style="color:var(--accent)">WhatsApp Setup (Twilio Sandbox):</strong><br>
+                        1. Create a free account at <a href="https://twilio.com" target="_blank" style="color:var(--accent); text-decoration:underline;">twilio.com</a><br>
+                        2. Connect phone to Sandbox (send the text code provided to <b>+1 415 523 8886</b>)<br>
+                        3. Enter your Account SID and Auth Token below
+                    </div>
+                    <div class="form-group"><label>Twilio Account SID</label><input type="text" id="twilio-sid" class="form-input" placeholder="AC..."></div>
+                    <div class="form-group"><label>Twilio Auth Token</label><input type="password" id="twilio-token" class="form-input" placeholder="Your Twilio Auth Token"></div>
+                    <div class="form-group"><label>Twilio Sandbox Number (From)</label><input type="tel" id="twilio-from" class="form-input" placeholder="+14155238886"></div>
+                    <div class="form-group"><label>Your WhatsApp Number (To)</label><input type="tel" id="twilio-to" class="form-input" placeholder="+1234567890"></div>
+                </div>
+
+                <!-- Custom Webhook Section -->
+                <div id="wa-section-custom" class="wa-provider-section" style="margin-bottom:20px; display:none;">
+                    <div style="padding:12px 16px;background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.3);border-radius:8px;margin-bottom:16px;font-size:13px;line-height:1.6;color:var(--text-secondary)">
+                        <strong style="color:#a78bfa">Custom HTTP Webhook API:</strong><br>
+                        Allows integration with local/remote servers, n8n, Make, Telegram, Zapier, etc.<br>
+                        Use <code style="color:#a78bfa">{{message}}</code> as a placeholder for the notification text.
+                    </div>
+                    <div class="form-group">
+                        <label>HTTP Method</label>
+                        <select id="custom-method" class="form-input" style="background:var(--bg-secondary); color:var(--text-primary); border:1px solid var(--border); padding:8px 12px; border-radius:6px; width:100%; font-family:inherit;">
+                            <option value="POST">POST</option>
+                            <option value="GET">GET</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label>Request URL</label><input type="text" id="custom-url" class="form-input" placeholder="https://api.example.com/send?msg={{message}}"></div>
+                    <div class="form-group"><label>Custom Headers (JSON Object)</label><textarea id="custom-headers" class="form-textarea" rows="2" placeholder='{"Authorization": "Bearer key"}' style="background:var(--bg-secondary); color:var(--text-primary); border:1px solid var(--border); padding:8px 12px; border-radius:6px; width:100%; font-family:inherit; resize:vertical;"></textarea></div>
+                    <div class="form-group"><label>Request Body Template (for POST)</label><textarea id="custom-body" class="form-textarea" rows="3" placeholder='{"text": "{{message}}"}' style="background:var(--bg-secondary); color:var(--text-primary); border:1px solid var(--border); padding:8px 12px; border-radius:6px; width:100%; font-family:inherit; resize:vertical;"></textarea></div>
+                </div>
+                
                 <div style="margin:24px 0;border-top:1px solid var(--border)"></div>
                 <div style="padding:12px 16px;background:rgba(129,140,248,0.1);border:1px solid rgba(129,140,248,0.3);border-radius:8px;margin-bottom:16px;font-size:13px;line-height:1.6;color:var(--text-secondary)">
                     <strong style="color:var(--text-primary)">SMS Setup (httpSMS):</strong><br>
@@ -260,6 +441,143 @@
                 <button class="btn-primary" id="sms-settings-save">Save Settings</button>
                 <button class="btn-primary" id="sms-test" style="margin-top:8px;background:linear-gradient(135deg,#34d399,#06b6d4)">📨 Send Test Notification</button>
                 <div id="sms-status" style="margin-top:12px;font-size:13px;color:var(--text-muted);text-align:center"></div>
+            </div>
+
+            <div class="modal-body" id="settings-backup-body" style="display:none;">
+                <div style="padding:12px 16px;background:rgba(129,140,248,0.1);border:1px solid rgba(129,140,248,0.3);border-radius:8px;margin-bottom:16px;font-size:13px;line-height:1.6;color:var(--text-secondary)">
+                    <strong style="color:var(--text-primary)">Local Backup & Restore:</strong><br>
+                    Keep your data safe! Since all tasks are stored in your browser's local storage, clearing your browser history will delete your GTD system. Export regular backups to secure your data.
+                </div>
+                <div style="display:flex; flex-direction:column; gap:12px;">
+                    <button class="btn-primary" id="btn-export-data">📤 Export Database (JSON)</button>
+                    <div style="margin:16px 0; border-top:1px solid var(--border)"></div>
+                    <label style="display:block; font-size:12px; font-weight:600; color:var(--text-secondary); margin-bottom:6px; text-transform:uppercase">📥 Restore Database</label>
+                    <div class="backup-dropzone" id="backup-dropzone" style="border:2px dashed var(--border); border-radius:var(--radius-sm); padding:24px; text-align:center; color:var(--text-secondary); cursor:pointer; transition:all 0.2s; position:relative;">
+                        <span style="font-size:24px; display:block; margin-bottom:8px">📂</span>
+                        Click to select or drag & drop a <b>gtd_backup.json</b> file here
+                        <input type="file" id="backup-file-input" accept=".json" style="display:none">
+                    </div>
+                    <div style="margin:16px 0; border-top:1px solid var(--border)"></div>
+                    <label style="display:block; font-size:12px; font-weight:600; color:var(--text-secondary); margin-bottom:6px; text-transform:uppercase">⚠️ Danger Zone</label>
+                    <button class="btn-danger" id="btn-reset-data" style="margin-top:0;">💥 Wipe All Data & Reset App</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toast-container"></div>
+    <canvas id="confetti-canvas" style="position:fixed; inset:0; pointer-events:none; z-index:9999; width:100%; height:100%; display:none;"></canvas>
+
+    <!-- Command Palette Modal -->
+    <div class="modal-overlay" id="command-palette-modal">
+        <div class="modal palette-modal" style="max-width:550px; background:rgba(18,18,42,0.85); backdrop-filter:blur(30px); border:1px solid rgba(255,255,255,0.08); border-radius:var(--radius);">
+            <div class="palette-header" style="display:flex; align-items:center; gap:12px; padding:16px 20px; border-bottom:1px solid var(--border);">
+                <span style="font-size:18px;">🔍</span>
+                <input type="text" id="palette-search" placeholder="Search tasks or type a command... (try 'go next', 'add task @home')" autocomplete="off" style="flex:1; background:none; border:none; color:var(--text-primary); font-size:15px; font-family:inherit; outline:none;">
+                <span style="background:var(--border); font-size:10px; font-weight:700; color:var(--text-secondary); padding:2px 6px; border-radius:4px; font-family:monospace;">ESC</span>
+            </div>
+            <div class="palette-body" style="padding:16px 20px; max-height:300px; overflow-y:auto;">
+                <div class="palette-section" id="palette-commands-section" style="margin-bottom:16px;">
+                    <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--text-muted); margin-bottom:8px;">Commands</div>
+                    <div id="palette-commands-results" style="display:flex; flex-direction:column; gap:4px;"></div>
+                </div>
+                <div class="palette-section" id="palette-tasks-section">
+                    <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--text-muted); margin-bottom:8px;">Matching Tasks</div>
+                    <div id="palette-tasks-results" style="display:flex; flex-direction:column; gap:4px;"></div>
+                </div>
+            </div>
+            <div class="palette-footer" style="padding:12px 20px; border-top:1px solid var(--border); display:flex; justify-content:space-between; font-size:11px; color:var(--text-muted);">
+                <span>↑↓ to navigate</span>
+                <span>ENTER to select</span>
+                <span>ESC to close</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Keyboard Shortcuts Helper Modal -->
+    <div class="modal-overlay" id="shortcuts-modal">
+        <div class="modal" style="max-width:550px;">
+            <div class="modal-header">
+                <h2>🎹 Keyboard Shortcuts Cheat-sheet</h2>
+                <button class="modal-close" id="shortcuts-close">&times;</button>
+            </div>
+            <div class="modal-body" style="padding:20px;">
+                <div class="shortcuts-grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:20px;">
+                    <div>
+                        <h3 style="font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--accent); margin-bottom:12px;">Global Controls</h3>
+                        <div style="display:flex; flex-direction:column; gap:8px;">
+                            <div style="display:flex; justify-content:space-between; font-size:13px; border-bottom:1px solid rgba(255,255,255,0.03); padding-bottom:6px;"><span style="color:var(--text-secondary)">Open Palette</span><span style="font-family:monospace; color:var(--text-primary); font-weight:600;"><kbd style="background:var(--bg-glass); border:1px solid var(--border); padding:2px 6px; border-radius:4px;">Ctrl</kbd> + <kbd style="background:var(--bg-glass); border:1px solid var(--border); padding:2px 6px; border-radius:4px;">K</kbd></span></div>
+                            <div style="display:flex; justify-content:space-between; font-size:13px; border-bottom:1px solid rgba(255,255,255,0.03); padding-bottom:6px;"><span style="color:var(--text-secondary)">Quick Search</span><span style="font-family:monospace; color:var(--text-primary); font-weight:600;"><kbd style="background:var(--bg-glass); border:1px solid var(--border); padding:2px 6px; border-radius:4px;">/</kbd></span></div>
+                            <div style="display:flex; justify-content:space-between; font-size:13px; border-bottom:1px solid rgba(255,255,255,0.03); padding-bottom:6px;"><span style="color:var(--text-secondary)">Focus Capture</span><span style="font-family:monospace; color:var(--text-primary); font-weight:600;"><kbd style="background:var(--bg-glass); border:1px solid var(--border); padding:2px 6px; border-radius:4px;">c</kbd></span></div>
+                            <div style="display:flex; justify-content:space-between; font-size:13px; border-bottom:1px solid rgba(255,255,255,0.03); padding-bottom:6px;"><span style="color:var(--text-secondary)">Toggle Help</span><span style="font-family:monospace; color:var(--text-primary); font-weight:600;"><kbd style="background:var(--bg-glass); border:1px solid var(--border); padding:2px 6px; border-radius:4px;">?</kbd></span></div>
+                            <div style="display:flex; justify-content:space-between; font-size:13px; border-bottom:1px solid rgba(255,255,255,0.03); padding-bottom:6px;"><span style="color:var(--text-secondary)">Close Modals</span><span style="font-family:monospace; color:var(--text-primary); font-weight:600;"><kbd style="background:var(--bg-glass); border:1px solid var(--border); padding:2px 6px; border-radius:4px;">Esc</kbd></span></div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 style="font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--accent-2); margin-bottom:12px;">Navigation Commands</h3>
+                        <div style="display:flex; flex-direction:column; gap:8px;">
+                            <div style="display:flex; justify-content:space-between; font-size:13px; border-bottom:1px solid rgba(255,255,255,0.03); padding-bottom:6px;"><span style="color:var(--text-secondary)">Go to Inbox</span><span style="font-family:monospace; color:var(--text-primary); font-weight:600;"><kbd style="background:var(--bg-glass); border:1px solid var(--border); padding:2px 4px; border-radius:4px;">g</kbd> <kbd style="background:var(--bg-glass); border:1px solid var(--border); padding:2px 4px; border-radius:4px;">i</kbd></span></div>
+                            <div style="display:flex; justify-content:space-between; font-size:13px; border-bottom:1px solid rgba(255,255,255,0.03); padding-bottom:6px;"><span style="color:var(--text-secondary)">Go to Next Actions</span><span style="font-family:monospace; color:var(--text-primary); font-weight:600;"><kbd style="background:var(--bg-glass); border:1px solid var(--border); padding:2px 4px; border-radius:4px;">g</kbd> <kbd style="background:var(--bg-glass); border:1px solid var(--border); padding:2px 4px; border-radius:4px;">n</kbd></span></div>
+                            <div style="display:flex; justify-content:space-between; font-size:13px; border-bottom:1px solid rgba(255,255,255,0.03); padding-bottom:6px;"><span style="color:var(--text-secondary)">Go to Projects</span><span style="font-family:monospace; color:var(--text-primary); font-weight:600;"><kbd style="background:var(--bg-glass); border:1px solid var(--border); padding:2px 4px; border-radius:4px;">g</kbd> <kbd style="background:var(--bg-glass); border:1px solid var(--border); padding:2px 4px; border-radius:4px;">p</kbd></span></div>
+                            <div style="display:flex; justify-content:space-between; font-size:13px; border-bottom:1px solid rgba(255,255,255,0.03); padding-bottom:6px;"><span style="color:var(--text-secondary)">Go to Calendar</span><span style="font-family:monospace; color:var(--text-primary); font-weight:600;"><kbd style="background:var(--bg-glass); border:1px solid var(--border); padding:2px 4px; border-radius:4px;">g</kbd> <kbd style="background:var(--bg-glass); border:1px solid var(--border); padding:2px 4px; border-radius:4px;">c</kbd></span></div>
+                            <div style="display:flex; justify-content:space-between; font-size:13px; border-bottom:1px solid rgba(255,255,255,0.03); padding-bottom:6px;"><span style="color:var(--text-secondary)">Go to Review</span><span style="font-family:monospace; color:var(--text-primary); font-weight:600;"><kbd style="background:var(--bg-glass); border:1px solid var(--border); padding:2px 4px; border-radius:4px;">g</kbd> <kbd style="background:var(--bg-glass); border:1px solid var(--border); padding:2px 4px; border-radius:4px;">v</kbd></span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Event Modal -->
+    <div class="modal-overlay" id="event-modal">
+        <div class="modal" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2>📅 Create Calendar Event</h2>
+                <button class="modal-close" id="event-modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Event Title</label>
+                    <input type="text" id="event-title" class="form-input" placeholder="e.g. Mom's Birthday">
+                </div>
+                <div style="display: flex; gap: 16px;">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Date</label>
+                        <input type="date" id="event-date" class="form-input">
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Time (Optional)</label>
+                        <input type="time" id="event-time" class="form-input">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Repeat / Recurrence</label>
+                    <select id="event-recurrence" class="form-select">
+                        <option value="none">🚫 Does not repeat</option>
+                        <option value="daily">🔄 Daily</option>
+                        <option value="weekly">🗓️ Weekly</option>
+                        <option value="monthly">📅 Monthly</option>
+                        <option value="yearly">🎂 Yearly (Birthday/Anniversary)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Description / Notes</label>
+                    <textarea id="event-notes" class="form-textarea" rows="3" placeholder="Add details..."></textarea>
+                </div>
+                <button class="btn-primary" id="event-save" style="margin-top: 8px;">Add Event</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Real-Time Event Alert Modal -->
+    <div class="modal-overlay" id="alert-modal">
+        <div class="modal alert-modal" style="max-width: 450px; background: rgba(18, 18, 42, 0.95); border: 2px solid var(--accent); box-shadow: 0 0 30px rgba(129, 140, 248, 0.4); text-align: center; border-radius: var(--radius);">
+            <div class="modal-body" style="padding: 32px 24px;">
+                <div style="font-size: 48px; margin-bottom: 16px; animation: alertPulse 1.5s infinite;">⏰</div>
+                <h2 style="font-size: 20px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">Event Reminder</h2>
+                <div id="alert-event-title" style="font-size: 18px; font-weight: 600; color: var(--accent); margin-bottom: 12px; padding: 8px 16px; background: rgba(129, 140, 248, 0.1); border-radius: 8px;">Event Title</div>
+                <p id="alert-event-details" style="font-size: 13px; color: var(--text-secondary); margin-bottom: 24px; line-height: 1.5;">This event is starting now!</p>
+                <button class="btn-primary" id="alert-dismiss-btn" style="max-width: 150px; margin: 0 auto; display: block;">Dismiss</button>
             </div>
         </div>
     </div>
